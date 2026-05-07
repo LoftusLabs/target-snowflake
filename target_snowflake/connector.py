@@ -595,7 +595,7 @@ class SnowflakeConnector(SQLConnector):
             )
             self.logger.debug("Merging with SQL: %s", merge_statement)
             raw_cursor = conn.connection.dbapi_connection.cursor()
-            raw_cursor.execute(merge_statement.text)
+            raw_cursor.execute(merge_statement.text.replace("%%", "%"))
             return raw_cursor.rowcount
 
     def copy_from_stage(
@@ -622,7 +622,7 @@ class SnowflakeConnector(SQLConnector):
             )
             self.logger.debug("Copying with SQL: %s", copy_statement)
             raw_cursor = conn.connection.dbapi_connection.cursor()
-            raw_cursor.execute(copy_statement.text)
+            raw_cursor.execute(copy_statement.text.replace("%%", "%"))
             return raw_cursor.rowcount
 
     def drop_file_format(self, file_format: str) -> None:
