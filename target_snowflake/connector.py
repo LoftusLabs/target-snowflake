@@ -586,7 +586,7 @@ class SnowflakeConnector(SQLConnector):
             key_properties: The primary key properties of the data.
         """
         with self._connect() as conn, conn.begin():
-            merge_statement, kwargs = self._get_merge_from_stage_statement(
+            merge_statement, _ = self._get_merge_from_stage_statement(
                 full_table_name=full_table_name,
                 schema=schema,
                 sync_id=sync_id,
@@ -594,8 +594,9 @@ class SnowflakeConnector(SQLConnector):
                 key_properties=key_properties,
             )
             self.logger.debug("Merging with SQL: %s", merge_statement)
-            result = conn.exec_driver_sql(merge_statement.text)
-            return result.rowcount
+            raw_cursor = conn.connection.dbapi_connection.cursor()
+            raw_cursor.execute(merge_statement.text)
+            return raw_cursor.rowcount
 
     def copy_from_stage(
         self,
@@ -613,15 +614,16 @@ class SnowflakeConnector(SQLConnector):
             file_format: The name of the file format.
         """
         with self._connect() as conn, conn.begin():
-            copy_statement, kwargs = self._get_copy_statement(
+            copy_statement, _ = self._get_copy_statement(
                 full_table_name=full_table_name,
                 schema=schema,
                 sync_id=sync_id,
                 file_format=file_format,
             )
             self.logger.debug("Copying with SQL: %s", copy_statement)
-            result = conn.exec_driver_sql(copy_statement.text)
-            return result.rowcount
+            raw_cursor = conn.connection.dbapi_connection.cursor()
+            raw_cursor.execute(copy_statement.text)
+            return raw_cursor.rowcount
 
     def drop_file_format(self, file_format: str) -> None:
         """Drop a file format in the schema.
